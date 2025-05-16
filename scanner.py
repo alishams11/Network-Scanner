@@ -1,1 +1,1 @@
-print("Simple network scanner")
+Remove scanner.py
