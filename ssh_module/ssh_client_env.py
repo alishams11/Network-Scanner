@@ -1,7 +1,17 @@
 import paramiko
 import configparser
 import os
+import argparse
 import sys # Added for sys.exit()
+# --- Argument Parsing ---
+parser = argparse.ArgumentParser(description="SSH Client to connect to remote servers via environment variables or a config file.")
+parser.add_argument('--config', '-c', type=str,
+                    help="Specify server name from config.ini (e.g., server_1). If not provided, environment variables are used.")
+parser.add_argument('--config-file', '-f', type=str, default='config.ini',
+                    help="Path to the config file (default: config.ini).")
+parser.add_argument('--command', '-cmd', type=str,
+                    help="Command to execute on the remote server (overrides config file/default).")
+args = parser.parse_args()
 # Function to read configuration from a .ini file
 def get_config_from_file(config_file='config.ini', server_name='server_1'):
     config = configparser.ConfigParser()
