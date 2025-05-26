@@ -52,7 +52,7 @@ command = None
 if args.config: # If --config or -c is provided, read from config file
     print(f"Reading configuration for server '{args.config}' from '{args.config_file}'...")
     config_section = get_config_from_file(args.config_file, args.config)
-    
+
     hostname = config_section.get('Hostname')
     port = int(config_section.get('Port', 22))
     username = config_section.get('Username')
@@ -60,7 +60,7 @@ if args.config: # If --config or -c is provided, read from config file
     key_file = config_section.get('KeyFile') # New: Read KeyFile from config
     passphrase = config_section.get('Passphrase') # New: Read Passphrase from config
     command = config_section.get('Command')
-    
+
     if not all([hostname, username]) or (not password and not key_file):
         print(f"Error: Missing Hostname, Username, and either Password or KeyFile for server '{args.config}' in '{args.config_file}'.")
         sys.exit(1)
@@ -116,14 +116,14 @@ ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 # --- Connection and Command Execution ---
 try:
     print(f"Attempting to connect to {hostname}:{port} with username {username}...")
-    
+
     # New connection logic: Try key-based auth first, then password
     if key_file:
         try:
             # Expand user home directory for key file path
             expanded_key_file = os.path.expanduser(key_file)
             print(f"Attempting key-based authentication with key: {expanded_key_file}")
-            
+
             # Auto-detect key type (RSA, EdDSA, etc.)
             key = paramiko.AutoAddPolicy()
             try:
@@ -134,13 +134,13 @@ try:
                     # Try to load key as EdDSA (for newer keys)
                     key = paramiko.EdDSAKey.from_private_key_file(expanded_key_file, password=passphrase)
                 except paramiko.ssh_exception.SSHException:
-                     try:
+                    try:
                         # Try to load key as ECDSA (common newer key type)
                         key = paramiko.ECDSAKey.from_private_key_file(expanded_key_file, password=passphrase)
-                     except paramiko.ssh_exception.SSHException as e:
+                    except paramiko.ssh_exception.SSHException as e:
                         print(f"Error loading key file {expanded_key_file}: {e}")
                         sys.exit(1)
-            
+
             ssh_client.connect(hostname, port, username, pkey=key)
             print("Connection to server successful using SSH key!")
         except FileNotFoundError:
@@ -160,13 +160,13 @@ try:
         if not password:
             print("Error: No SSH key file provided and no password found. Please specify an authentication method.")
             sys.exit(1)
-        
+
         print("Attempting password-based authentication...")
         ssh_client.connect(hostname, port, username, password)
         print("Connection to server successful using password!")
 
     print(f"Executing command: '{command}'")
-    
+
     stdin, stdout, stderr = ssh_client.exec_command(command)
 
     output = stdout.read().decode().strip()
